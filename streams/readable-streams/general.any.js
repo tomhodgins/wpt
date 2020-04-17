@@ -26,63 +26,24 @@ test(() => {
 
 test(() => {
 
-  assert_throws_js(RangeError, () => new ReadableStream({ type: null }),
+  assert_throws_js(TypeError, () => new ReadableStream({ type: null }),
     'constructor should throw when the type is null');
-  assert_throws_js(RangeError, () => new ReadableStream({ type: '' }),
+  assert_throws_js(TypeError, () => new ReadableStream({ type: '' }),
     'constructor should throw when the type is empty string');
-  assert_throws_js(RangeError, () => new ReadableStream({ type: 'asdf' }),
+  assert_throws_js(TypeError, () => new ReadableStream({ type: 'asdf' }),
     'constructor should throw when the type is asdf');
-  assert_throws_exactly(error1, () => new ReadableStream({ type: { get toString() {throw error1;} } }), 'constructor should throw when ToString() throws');
-  assert_throws_exactly(error1, () => new ReadableStream({ type: { toString() {throw error1;} } }), 'constructor should throw when ToString() throws');
+  assert_throws_exactly(
+    error1,
+    () => new ReadableStream({ type: { get toString() { throw error1; } } }),
+    'constructor should throw when ToString() throws'
+  );
+  assert_throws_exactly(
+    error1,
+    () => new ReadableStream({ type: { toString() { throw error1; } } }),
+    'constructor should throw when ToString() throws'
+  );
 
 }, 'ReadableStream can\'t be constructed with an invalid type');
-
-test(() => {
-
-  const methods = ['cancel', 'constructor', 'getReader', 'pipeThrough', 'pipeTo', 'tee', 'getIterator'];
-  const properties = methods.concat(['locked']).sort();
-  const symbols = [Symbol.asyncIterator];
-
-  const rs = new ReadableStream();
-  const proto = Object.getPrototypeOf(rs);
-
-  assert_array_equals(Object.getOwnPropertyNames(proto).sort(), properties, 'should have all the correct properties');
-  assert_array_equals(Object.getOwnPropertySymbols(proto).sort(), symbols, 'should have all the correct symbols');
-
-  for (const m of methods) {
-    const propDesc = Object.getOwnPropertyDescriptor(proto, m);
-    assert_false(propDesc.enumerable, 'method should be non-enumerable');
-    assert_true(propDesc.configurable, 'method should be configurable');
-    assert_true(propDesc.writable, 'method should be writable');
-    assert_equals(typeof rs[m], 'function', 'method should be a function');
-    const expectedName = m === 'constructor' ? 'ReadableStream' : m;
-    assert_equals(rs[m].name, expectedName, 'method should have the correct name');
-  }
-
-  const lockedPropDesc = Object.getOwnPropertyDescriptor(proto, 'locked');
-  assert_false(lockedPropDesc.enumerable, 'locked should be non-enumerable');
-  assert_equals(lockedPropDesc.writable, undefined, 'locked should not be a data property');
-  assert_equals(typeof lockedPropDesc.get, 'function', 'locked should have a getter');
-  assert_equals(lockedPropDesc.set, undefined, 'locked should not have a setter');
-  assert_true(lockedPropDesc.configurable, 'locked should be configurable');
-
-  assert_equals(rs.cancel.length, 1, 'cancel should have 1 parameter');
-  assert_equals(rs.constructor.length, 0, 'constructor should have no parameters');
-  assert_equals(rs.getReader.length, 0, 'getReader should have no parameters');
-  assert_equals(rs.pipeThrough.length, 1, 'pipeThrough should have 1 parameters');
-  assert_equals(rs.pipeTo.length, 1, 'pipeTo should have 1 parameter');
-  assert_equals(rs.tee.length, 0, 'tee should have no parameters');
-  assert_equals(rs.getIterator.length, 0, 'getIterator should have no required parameters');
-  assert_equals(rs[Symbol.asyncIterator].length, 0, '@@asyncIterator should have no required parameters');
-
-  const asyncIteratorPropDesc = Object.getOwnPropertyDescriptor(proto, Symbol.asyncIterator);
-  assert_false(asyncIteratorPropDesc.enumerable, '@@asyncIterator should be non-enumerable');
-  assert_true(asyncIteratorPropDesc.configurable, '@@asyncIterator should be configurable');
-  assert_true(asyncIteratorPropDesc.writable, '@@asyncIterator should be writable');
-  assert_equals(typeof rs[Symbol.asyncIterator], 'function', '@@asyncIterator should be a function');
-  assert_equals(rs[Symbol.asyncIterator].name, 'getIterator', '@@asyncIterator should have the correct name');
-
-}, 'ReadableStream instances should have the correct list of properties');
 
 test(() => {
 
@@ -109,38 +70,8 @@ test(() => {
   let startCalled = false;
 
   const source = {
-    start(controller) {
+    start() {
       assert_equals(this, source, 'source is this during start');
-
-      const methods = ['close', 'enqueue', 'error', 'constructor'];
-      const properties = ['desiredSize'].concat(methods).sort();
-      const proto = Object.getPrototypeOf(controller);
-
-      assert_array_equals(Object.getOwnPropertyNames(proto).sort(), properties,
-        'the controller should have the right properties');
-
-      for (const m of methods) {
-        const propDesc = Object.getOwnPropertyDescriptor(proto, m);
-        assert_equals(typeof controller[m], 'function', `should have a ${m} method`);
-        assert_false(propDesc.enumerable, m + ' should be non-enumerable');
-        assert_true(propDesc.configurable, m + ' should be configurable');
-        assert_true(propDesc.writable, m + ' should be writable');
-        const expectedName = m === 'constructor' ? 'ReadableStreamDefaultController' : m;
-        assert_equals(controller[m].name, expectedName, 'method should have the correct name');
-      }
-
-      const desiredSizePropDesc = Object.getOwnPropertyDescriptor(proto, 'desiredSize');
-      assert_false(desiredSizePropDesc.enumerable, 'desiredSize should be non-enumerable');
-      assert_equals(desiredSizePropDesc.writable, undefined, 'desiredSize should not be a data property');
-      assert_equals(typeof desiredSizePropDesc.get, 'function', 'desiredSize should have a getter');
-      assert_equals(desiredSizePropDesc.set, undefined, 'desiredSize should not have a setter');
-      assert_true(desiredSizePropDesc.configurable, 'desiredSize should be configurable');
-
-      assert_equals(controller.close.length, 0, 'close should have no parameters');
-      assert_equals(controller.constructor.length, 0, 'constructor should have no parameters');
-      assert_equals(controller.enqueue.length, 1, 'enqueue should have 1 parameter');
-      assert_equals(controller.error.length, 1, 'error should have 1 parameter');
-
       startCalled = true;
     }
   };
@@ -148,7 +79,7 @@ test(() => {
   new ReadableStream(source);
   assert_true(startCalled);
 
-}, 'ReadableStream start should be called with the proper parameters');
+}, 'ReadableStream start should be called with the proper thisArg');
 
 test(() => {
 
@@ -178,7 +109,7 @@ test(() => {
   (new ReadableStream()).getReader(undefined);
   (new ReadableStream()).getReader({});
   (new ReadableStream()).getReader({ mode: undefined, notmode: 'ignored' });
-  assert_throws_js(RangeError, () => (new ReadableStream()).getReader({ mode: 'potato' }));
+  assert_throws_js(TypeError, () => (new ReadableStream()).getReader({ mode: 'potato' }));
 }, 'default ReadableStream getReader() should only accept mode:undefined');
 
 promise_test(() => {
