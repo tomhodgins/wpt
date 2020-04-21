@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Verify timeline time, animation time, effect time and effect value for all fill modes in all timeline states: before start, at start, in range, at end, after end</title>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/web-animations/testcommon.js"></script>
+<script src="testcommon.js"></script>
+<style>
+  .scroller {
+    overflow: auto;
+    height: 100px;
+    width: 100px;
+  }
+  .contents {
+    height: 1000px;
+    width: 100%;
+  }
+</style>
+<div id="log"></div>
+<script>
+  'use strict';
+
+  function createKeyframeEffect(target, fill){
+    return new KeyframeEffect(
+      target,
+      {
+        opacity: [0.3, 0.7]
+      },
+      {
+        duration: 1000,
+        fill: fill
+      }
+    );
+  }
+
+  function createScrollLinkedAnimationWithOffsets(test, target, fill, timeline){
+    if (target === undefined)
+      target = createDiv(test);
+    if (fill === undefined)
+      fill = "auto";
+    if (timeline === undefined)
+      timeline = createScrollTimelineWithOffsets(test, "20%", "80%");
+    return new Animation(createKeyframeEffect(target, fill), timeline);
+  }
+
+  const states = {
+    before_start: {
+      name: "before start",
+      scroll_percent: 0.1,
+      timeline_current_time: 0,
+      animation_current_time: 0,
+      effect_local_time: 0
+    },
+    at_start: {
+      name: "at start",
+      scroll_percent: 0.2,
+      timeline_current_time: 0,
+      animation_current_time: 0,
+      effect_local_time: 0
+    },
+    in_range: {
+      name: "in range",
+      scroll_percent: 0.5,
+      timeline_current_time: 500,
+      animation_current_time: 500,
+      effect_local_time: 500
+    },
+    at_end: {
+      name: "at end",
+      scroll_percent: 0.8,
+      timeline_current_time: 1000,
+      animation_current_time: 1000,
+      effect_local_time: 1000
+    },
+    after_end: {
+      name: "after end",
+      scroll_percent: 0.9,
+      timeline_current_time: 1000,
+      animation_current_time: 1000,
+      effect_local_time: 1000
+    }
+  }
+
+  const test_cases = [
+    {
+      fill_mode: "none",
+      property_values: {
+        before_start: "1",
+        at_start: "0.3",
+        in_range: "0.5",
+        at_end: "1",
+        after_end: "1",
+      }
+    },
+    {
+      fill_mode: "backwards",
+      property_values: {
+        before_start: "0.3",
+        at_start: "0.3",
+        in_range: "0.5",
+        at_end: "1",
+        after_end: "1",
+      }
+    },
+    {
+      fill_mode: "forwards",
+      property_values: {
+        before_start: "1",
+        at_start: "0.3",
+        in_range: "0.5",
+        at_end: "0.7",
+        after_end: "0.7",
+      }
+    },
+    {
+      fill_mode: "both",
+      property_values: {
+        before_start: "0.3",
+        at_start: "0.3",
+        in_range: "0.5",
+        at_end: "0.7",
+        after_end: "0.7",
+      }
+    },
+  ]
+
+  for (const test_case of test_cases){
+    const fill = test_case.fill_mode;
+    for (const state_key in states){
+      promise_test(async t => {
+        const target = createDiv(t);
+        const animation = createScrollLinkedAnimationWithOffsets(t, target,
+          fill);
+        const scroller = animation.timeline.scrollSource;
+        const maxScroll = scroller.scrollHeight - scroller.clientHeight;
+
+        animation.play();
+
+        await animation.ready;
+
+        scroller.scrollTop = states[state_key].scroll_percent * maxScroll;
+
+        // Wait for new animation frame which allows the timeline to compute
+        // new current time.
+        await waitForNextFrame();
+
+        assert_equals(
+          animation.timeline.currentTime,
+          states[state_key].timeline_current_time,
+          "timeline current time"
+        );
+        assert_equals(
+          animation.currentTime,
+          states[state_key].animation_current_time,
+          "animation current time"
+        );
+        assert_equals(
+          animation.effect.getComputedTiming().localTime,
+          states[state_key].effect_local_time,
+          "animation effect local time"
+        );
+        assert_equals(
+          window.getComputedStyle(target).getPropertyValue("opacity"),
+          test_case.property_values[state_key],
+          "effect value");
+      }, "Current times and effect value for fill mode: \""+fill+"\" " +
+      states[state_key].name + ".");
+    }
+  }
+</script>
