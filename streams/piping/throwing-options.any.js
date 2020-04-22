@@ -1,4 +1,5 @@
 // META: global=worker,jsshell
+'use strict';
 
 class ThrowingOptions {
   constructor(whatShouldThrow) {
