@@ -308,7 +308,7 @@ promise_test(() => {
       const view = byobRequest.view;
       byobRequests[pullCount] = {
         nonNull: byobRequest !== null,
-        viewDefined: view !== undefined,
+        viewNonNull: view !== null,
         viewInfo: extractViewInfo(view)
       };
       if (pullCount === 0) {
@@ -338,7 +338,7 @@ promise_test(() => {
     assert_equals(pullCount, 1, 'pull() must have been invoked once');
     const byobRequest = byobRequests[0];
     assert_true(byobRequest.nonNull, 'first byobRequest must not be null');
-    assert_true(byobRequest.viewDefined, 'first byobRequest.view must not be null');
+    assert_true(byobRequest.viewNonNull, 'first byobRequest.view must not be null');
     const viewInfo = byobRequest.viewInfo;
     assert_equals(viewInfo.constructor, Uint8Array, 'first view.constructor should be Uint8Array');
     assert_equals(viewInfo.bufferByteLength, 16, 'first view.buffer.byteLength should be 16');
@@ -357,7 +357,7 @@ promise_test(() => {
     assert_equals(value[0], 0x01, 'first value[0] should be 0x01');
     const byobRequest = byobRequests[1];
     assert_true(byobRequest.nonNull, 'second byobRequest must not be null');
-    assert_true(byobRequest.viewDefined, 'second byobRequest.view must not be null');
+    assert_true(byobRequest.viewNonNull, 'second byobRequest.view must not be null');
     const viewInfo = byobRequest.viewInfo;
     assert_equals(viewInfo.constructor, Uint8Array, 'second view.constructor should be Uint8Array');
     assert_equals(viewInfo.bufferByteLength, 16, 'second view.buffer.byteLength should be 16');
@@ -392,7 +392,7 @@ promise_test(() => {
       const view = byobRequest.view;
       byobRequests[pullCount] = {
         nonNull: byobRequest !== null,
-        viewDefined: view !== undefined,
+        viewNonNull: view !== null,
         viewInfo: extractViewInfo(view)
       };
       if (pullCount === 0) {
@@ -423,7 +423,7 @@ promise_test(() => {
     assert_equals(value[0], 0x01, 'first value[0] should be 0x01');
     const byobRequest = byobRequests[0];
     assert_true(byobRequest.nonNull, 'first byobRequest must not be null');
-    assert_true(byobRequest.viewDefined, 'first byobRequest.view must not be null');
+    assert_true(byobRequest.viewNonNull, 'first byobRequest.view must not be null');
     const viewInfo = byobRequest.viewInfo;
     assert_equals(viewInfo.constructor, Uint8Array, 'first view.constructor should be Uint8Array');
     assert_equals(viewInfo.bufferByteLength, 16, 'first view.buffer.byteLength should be 16');
@@ -444,7 +444,7 @@ promise_test(() => {
     assert_equals(value[1], 0x03, 'second value[1] should be 0x03');
     const byobRequest = byobRequests[1];
     assert_true(byobRequest.nonNull, 'second byobRequest must not be null');
-    assert_true(byobRequest.viewDefined, 'second byobRequest.view must not be null');
+    assert_true(byobRequest.viewNonNull, 'second byobRequest.view must not be null');
     const viewInfo = byobRequest.viewInfo;
     assert_equals(viewInfo.constructor, Uint8Array, 'second view.constructor should be Uint8Array');
     assert_equals(viewInfo.bufferByteLength, 32, 'second view.buffer.byteLength should be 32');

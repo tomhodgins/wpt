@@ -44,7 +44,7 @@ for (const QueuingStrategy of [CountQueuingStrategy, ByteLengthQueuingStrategy])
     for (const [input, output] of highWaterMarkConversions.entries()) {
       const strategy = new QueuingStrategy({ highWaterMark: input });
       assert_equals(strategy.highWaterMark, output, `${input} gets set correctly`);
-   }
+    }
   }, `${QueuingStrategy.name}: highWaterMark constructor values are converted per the unrestricted double rules`);
 
   test(() => {
