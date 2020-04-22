@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<body>
+<script>
+async_test(t => {
+  const worker = new SharedWorker("support/post-origin-on-load-worker.js?" + Math.random());
+  worker.onerror = t.unreached_func("Worker construction failed");
+  worker.port.onmessage = t.step_func_done(e => {
+    assert_equals(e.data, "null", "Origin should be opaque");
+  });
+}, "SharedWorker is sandboxed");
+</script>
+</body>

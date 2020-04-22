@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<meta content="sandbox allow-scripts" http-equiv="Content-Security-Policy">
+<body>
+<script>
+// According to
+// https://html.spec.whatwg.org/multipage/semantics.html#attr-meta-http-equiv-content-security-policy
+// `sandbox` directives must be ignored when delivered via `<meta>`.
+test(() => {
+  assert_equals(location.origin, "{{location[scheme]}}://{{location[host]}}");
+}, "Document shouldn't be sandboxed by <meta>");
+
+async_test(t => {
+  const worker = new Worker("support/post-origin-on-load-worker.js");
+  worker.onerror = t.unreached_func("Worker construction failed");
+  worker.onmessage = t.step_func_done(e => {
+    assert_equals(e.data, "{{location[scheme]}}://{{location[host]}}");
+  });
+}, "Worker shouldn't be sandboxed by inheriting <meta>");
+</script>
+</body>
