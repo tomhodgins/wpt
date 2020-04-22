@@ -25,8 +25,40 @@ function assert_tolerance(actual, expected, message)
     }
 }
 
+function checkDataKeys(node) {
+    var validData = {
+        "data-expected-width": true,
+        "data-expected-height": true,
+        "data-offset-x": true,
+        "data-offset-y": true,
+        "data-expected-client-width": true,
+        "data-expected-client-height": true,
+         "data-expected-scroll-width": true,
+        "data-expected-scroll-height": true,
+        "data-expected-bounding-client-rect-width": true,
+        "data-total-x": true,
+        "data-total-y": true,
+        "data-expected-display": true,
+        "data-expected-padding-top": true,
+        "data-expected-padding-bottom": true,
+        "data-expected-padding-left": true,
+        "data-expected-padding-right": true,
+        "data-expected-margin-top": true,
+        "data-expected-margin-bottom": true,
+        "data-expected-margin-left": true,
+        "data-expected-margin-right": true
+    };
+    if (!node || !node.getAttributeNames)
+        return;
+    for (let name of node.getAttributeNames()) {
+        if (name.startsWith("data-") && !validData[name])
+            console.warn(`checkLayout unexpected data attribute "${name}`);
+    }
+}
+
 function checkExpectedValues(t, node, prefix)
 {
+    checkDataKeys(node);
     var output = { checked: false };
 
     var expectedWidth = checkAttribute(output, node, "data-expected-width");
@@ -162,6 +194,8 @@ function checkExpectedValues(t, node, prefix)
 }
 
 var testNumber = 0;
+var highlightError = false; // displays outline around failed test element.
+var printDomOnError = true; // prints dom when test fails.
 
 window.checkLayout = function(selectorList, callDone = true)
 {
@@ -175,13 +209,24 @@ window.checkLayout = function(selectorList, callDone = true)
     Array.prototype.forEach.call(nodes, function(node) {
         test(function(t) {
             var container = node.parentNode.className == 'container' ? node.parentNode : node;
-            var prefix = "\n" + container.outerHTML + "\n";
+            var prefix =
+                printDomOnError ? '\n' + container.outerHTML + '\n' : '';
             var passed = false;
             try {
                 checkedLayout |= checkExpectedValues(t, node.parentNode, prefix);
                 checkedLayout |= checkSubtreeExpectedValues(t, node, prefix);
                 passed = true;
             } finally {
+              if (!passed && highlightError) {
+                if (!document.querySelector('#testharness_error_css')) {
+                  var style = document.createElement('style');
+                  style.setAttribute('id', '#testharness_error_css');
+                  style.appendChild(document.createTextNode(
+                      '.testharness_error { outline: red dotted 2px !important; }'));
+                }
+                if (node && node.classList)
+                  node.classList.add('testharness_error');
+              }
                 checkedLayout |= !passed;
             }
         }, selectorList + ' ' + String(++testNumber));
