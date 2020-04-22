@@ -1,5 +1,6 @@
 // META: script=/resources/testdriver.js
 // META: script=/resources/testdriver-vendor.js
+// META: script=/bluetooth/resources/bluetooth-test.js
 // META: script=/bluetooth/resources/bluetooth-helpers.js
 'use strict';
 const test_desc = 'A device that reconnects during the ' +
