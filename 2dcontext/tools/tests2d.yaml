@@ -10365,4 +10365,77 @@
     ctx.filter = 'blur(  5px)';
     assert_equals(ctx.filter, 'blur(  5px)');
 
+- name: 2d.getImageData.invalid
+  desc: Test the handling of invalid arguments in canvas getImageData().
+  testing:
+    - 2d.getImageData
+  code: |
+    @assert throws INDEX_SIZE_ERR ctx.getImageData(10, 10, 0, 10) = '';
+    @assert throws INDEX_SIZE_ERR ctx.getImageData(10, 10, 10, 0) = '';
 
+- name: 2d.getImageData.large.crash
+  desc: Test that canvas does not crash when large image data is requested.
+  testing:
+    - 2d.getImageData
+  code: |
+    try { ctx.getImageData(10, 0xffffffff, 2147483647, 10); } catch (e) { };
+
+- name: 2d.getImageData.negative.size
+  desc: Test that canvas does not crash when large negative dimensions is asked for the image data.
+  testing:
+    - 2d.getImageData
+  code: |
+    ctx.getImageData(100.5, 2147483647.5, -2048.5, -2048.5);
+
+- name: 2d.getImageData.negOffset.sourceRect
+  desc: Test the handling of negative sourceRect offset in getImageData().
+  testing:
+    - 2d.getImageData
+  code: |
+    ctx.fillStyle = 'red';
+    ctx.fillRect(0, 0, 100, 100);
+    ctx.fillStyle = 'green';
+    ctx.fillRect(0, 0, 6, 6);
+
+    var imageData = ctx.getImageData(-10, 0, 100, 1);
+    var imgdata = imageData.data;
+
+    @assert imgdata[0] == 0;
+    @assert imgdata[1] == 0;
+    @assert imgdata[2] == 0;
+    @assert imgdata[3] == 0;
+
+    @assert imgdata[60] == 0;
+    @assert imgdata[61] == 128;
+    @assert imgdata[62] == 0;
+    @assert imgdata[63] == 255;
+
+    @assert imgdata[64] == 255;
+    @assert imgdata[65] == 0;
+    @assert imgdata[66] == 0;
+    @assert imgdata[67] == 255;
+
+- name: 2d.getImageData.rounding
+  desc: Test the handling of non-integer source coordinates in getImageData().
+  testing:
+    - 2d.getImageData
+  code: |
+    function testDimensions(sx, sy, sw, sh, width, height)
+    {
+        imageData = ctx.getImageData(sx, sy, sw, sh);
+        @assert imageData.width == width;
+        @assert imageData.height == height;
+    }
+
+    testDimensions(   0,  0,   20,  10,     20, 10);
+
+    testDimensions(  .1, .2,   20,  10,     20, 10);
+    testDimensions(  .9, .8,   20,  10,     20, 10);
+
+    testDimensions(   0,  0, 20.9, 10.9,     20, 10);
+    testDimensions(   0,  0, 20.1, 10.1,     20, 10);
+
+    testDimensions(  -1, -1,   20,  10,     20, 10);
+
+    testDimensions(-1.1,  0,   20,  10,     20, 10);
+    testDimensions(-1.9,  0,   20,  10,     20, 10);
